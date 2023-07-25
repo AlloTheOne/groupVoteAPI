@@ -11,7 +11,7 @@ import Vapor
 final class Token: Model, Content {
     static let schema = "tokens"
 
-    @ID
+    @ID(key: .id)
     var id: UUID?
 
     @Field(key: "value")

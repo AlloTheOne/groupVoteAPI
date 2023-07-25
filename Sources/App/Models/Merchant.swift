@@ -17,9 +17,6 @@ final class Merchant: Model, Content {
     @Parent(key: "userID")
     var user: User
     
-    @Parent(key: "groupID")
-    var group: Group
-    
     @Field(key: "name")
     var name: String
     
@@ -35,10 +32,9 @@ final class Merchant: Model, Content {
     
     init() { }
     
-    init(id: UUID? = nil, userID: User.IDValue, groupID: Group.IDValue, name: String, votes: Int, updatedAt: Date?, createdAt: Date?) {
+    init(id: UUID? = nil, userID: User.IDValue, name: String, votes: Int, updatedAt: Date?, createdAt: Date?) {
         self.id = id
         self.$user.id = userID
-        self.$group.id = groupID
         self.name = name
         self.votes = votes
         self.updatedAt = updatedAt
