@@ -28,7 +28,7 @@ struct MerchantController: RouteCollection {
         
         let data = try req.content.decode(merchantEData.self)
         print("data", data.name)
-        let merchant = Merchant(userID: try data.user.requireID(), name: data.name, votes: data.votes, updatedAt: data.updatedAt, createdAt: data.createdAt)
+        let merchant = Merchant(userID: try data.user.requireID(), name: data.name, votes: data.votes, updatedAt: data.updatedAt, createdAt: data.createdAt) 
         try await merchant.save(on: req.db)
         print("data", data.name)
 //        let groupID = try req.parameters.require("groupID", as: UUID.self)
