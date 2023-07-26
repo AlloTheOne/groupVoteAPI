@@ -17,26 +17,31 @@ struct MerchantController: RouteCollection {
         let guardAuthMiddleware = User.guardMiddleware()
         let tokenAuthGroup = merchants.grouped(tokenAuthMiddleware, guardAuthMiddleware)
         
-        tokenAuthGroup.post(":groupID", use: createMerchant)
+        tokenAuthGroup.post("m", use: createMerchant)
     }
     
-    // post merchant
+    // post merchant -- i want to create group first then merchant?
     func createMerchant(_ req: Request) async throws -> HTTPStatus {
         let user = try req.auth.require(User.self)
         let userId = try user.requireID()
-        print("user id", userId)
-        
-        let data = try req.content.decode(merchantEData.self)
+//        print("user id", userId)
+        // create group + join
+        // get group
+        // create merchant
+        let createGroup = try await GroupController().createGroup(req)
+        let data = try req.content.decode(CreateMerchantEData.self)
+
         print("data", data.name)
-        let merchant = Merchant(userID: try data.user.requireID(), name: data.name, votes: data.votes, updatedAt: data.updatedAt, createdAt: data.createdAt) 
+        let merchant = Merchant(userID: userId.self, name: data.name, votes: 0)
         try await merchant.save(on: req.db)
-        print("data", data.name)
+//        print("data", data.name)
 //        let groupID = try req.parameters.require("groupID", as: UUID.self)
-//        guard let group = try await Group.find(groupID, on: req.db) else {
-//            throw Abort(.notFound, reason: "Gtoup not found")
-//        }
-//        let merchant_group = try Merchant_Group(merchanID: merchant.requireID(), groupID: group.requireID(), updatedAt: merchant.updatedAt, createdAt: merchant.createdAt)
-//        try await merchant_group.save(on: req.db)
+        let newGroupID = createGroup.id
+        guard let group = try await Group.find(newGroupID, on: req.db) else {
+            throw Abort(.notFound, reason: "Gtoup not found")
+        }
+        let merchant_group = try Merchant_Group(merchanID: merchant.requireID(), groupID: group.requireID())
+        try await merchant_group.save(on: req.db)
         return .noContent
     }
     // update votes
@@ -51,10 +56,6 @@ struct MerchantController: RouteCollection {
 //
 //}
 
-struct merchantEData: Content {
-    var user: User
+struct CreateMerchantEData: Content {
     var name: String
-    var votes: Int
-    var updatedAt: Date?
-    var createdAt: Date?
 }

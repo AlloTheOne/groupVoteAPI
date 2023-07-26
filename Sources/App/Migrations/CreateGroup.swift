@@ -12,6 +12,7 @@ struct CreateGroup: AsyncMigration {
         try await database.schema(Group.schema)
             .id()
             .field("join_id", .int, .required)
+            .unique(on: "join_id")
             .field("type", .string, .sql(.default("vote")))
             .field("tie", .bool, .required, .sql(.default(false)))
             .field("close", .bool, .required, .sql(.default(false)))

@@ -29,7 +29,7 @@ final class Merchant_Group: Model, Content {
     
     init() { }
     
-    init(id: UUID? = nil, merchanID: Merchant.IDValue, groupID: Group.IDValue, updatedAt: Date?, createdAt: Date?) {
+    init(id: UUID? = nil, merchanID: Merchant.IDValue, groupID: Group.IDValue, updatedAt: Date? = nil, createdAt: Date? = nil) {
         self.id = id
         self.$merchant.id = merchanID
         self.$group.id = groupID

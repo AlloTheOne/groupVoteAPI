@@ -38,7 +38,7 @@ final class Group: Model, Content {
     
     init() { }
     
-    init(id: UUID? = nil, join_id: Int, type: String?, tie: Bool, close: Bool, end: Bool, updatedAt: Date?, createdAt: Date?) {
+    init(id: UUID? = nil, join_id: Int, type: String?, tie: Bool, close: Bool, end: Bool, updatedAt: Date? = nil, createdAt: Date? = nil) {
         self.id = id
         self.join_id = join_id
         self.type = type

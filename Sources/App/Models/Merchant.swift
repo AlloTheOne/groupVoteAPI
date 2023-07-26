@@ -20,7 +20,7 @@ final class Merchant: Model, Content {
     @Field(key: "name")
     var name: String
     
-    @Field(key: "Votes")
+    @Field(key: "votes")
     var votes: Int
     
     @Timestamp(key: "updatedAt", on: .update, format: .iso8601)
@@ -32,7 +32,7 @@ final class Merchant: Model, Content {
     
     init() { }
     
-    init(id: UUID? = nil, userID: User.IDValue, name: String, votes: Int, updatedAt: Date?, createdAt: Date?) {
+    init(id: UUID? = nil, userID: User.IDValue, name: String, votes: Int, updatedAt: Date? = nil, createdAt: Date? = nil) {
         self.id = id
         self.$user.id = userID
         self.name = name
