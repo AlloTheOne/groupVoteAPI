@@ -79,7 +79,6 @@ struct GroupController: RouteCollection {
     // query to get the group - internaly
     func getGroupByJoinIDIN(_ req: Request, join_id: Int) async throws -> Bool {
         
-       
         
         guard let group = try await Group.query(on: req.db)
             .filter(\.$join_id == join_id)
