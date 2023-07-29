@@ -17,9 +17,11 @@ struct MerchantController: RouteCollection {
         let guardAuthMiddleware = User.guardMiddleware()
         let tokenAuthGroup = merchants.grouped(tokenAuthMiddleware, guardAuthMiddleware)
         
-        tokenAuthGroup.post("m", use: createGroupMerchant)
+        tokenAuthGroup.post(use: createGroupMerchant)
         tokenAuthGroup.post(":groupID", use: createMerchant)
         tokenAuthGroup.get(":groupID",use: getAllMerchant)
+        tokenAuthGroup.get("winner",":groupID", use: getHighestScore)
+        tokenAuthGroup.patch(use: updateVotes)
     }
     
     // post merchant -- i want to create group first then merchant?
@@ -66,7 +68,7 @@ struct MerchantController: RouteCollection {
         return .noContent
     }
     
-    // update votes
+    
     
     // get all merchants in a group - merchant, merchant_group, group -- it works!
     func getAllMerchant(_ req: Request) async throws -> [Merchant] {
@@ -86,13 +88,38 @@ struct MerchantController: RouteCollection {
             .all()
     }
     
-    // get merchant by it's id
+    // get merchant by it's id - why?
     
-    // get highest score merchant 
+    // get highest score merchant
+    func getHighestScore(_ req: Request) async throws -> Merchant {
+        try req.auth.require(User.self)
+        let groupID = try req.parameters.require("groupID", as: UUID.self)
+        
+        return try await Merchant.query(on: req.db)
+            .join(Merchant_Group.self, on: \Merchant_Group.$merchant.$id == \Merchant.$id)
+            .join(Group.self, on: \Group.$id == \Merchant_Group.$group.$id)
+            .filter(Group.self, \.$id == groupID)
+            .sort(\.$votes)
+            .all().last!
+    }
     
+    // update votes
     
-    
-    
+    func updateVotes(_ req: Request) async throws -> HTTPStatus {
+//        guard let merchant = try await Merchant.find(req.parameters.get("merchantID"), on: req.db) else {
+//            throw Abort(.notFound, reason: "merchant not found")
+//        }
+        
+        let newVote = try req.content.decode(updateVotesData.self)
+        
+        guard let storedMerchant = try await Merchant.find(newVote.id, on: req.db) else {
+            throw Abort(.notFound, reason: "merchant not found")
+        }
+        storedMerchant.votes = newVote.votes
+        try await storedMerchant.update(on: req.db)
+        
+        return .noContent
+    }
     
 }
 
@@ -102,4 +129,9 @@ struct MerchantController: RouteCollection {
 
 struct CreateMerchantEData: Content {
     var name: String
+}
+
+struct updateVotesData: Content {
+    var id: UUID
+    var votes: Int
 }

@@ -20,6 +20,7 @@ struct GroupController: RouteCollection {
         
         tokenAuthGroup.post("create", use: createGroup)
         tokenAuthGroup.post(":join_id", use: joinGroup)
+        tokenAuthGroup.patch(use: updateGroup)
     }
     
     // post group + post user_group + post merchant
@@ -101,19 +102,40 @@ struct GroupController: RouteCollection {
     
     // join group using returned groupID value from join id
     // update tie - close - end
-    
+    func updateGroup(_ req: Request) async throws -> HTTPStatus {
+        try req.auth.require(User.self)
+        let group = try req.content.decode(updateGroupData.self)
+        
+        guard let storedGroup = try await Group.find(group.groupID, on: req.db) else {
+            throw Abort(.notFound, reason: "group not found")
+        }
+        
+        if let tie = group.tie {
+            storedGroup.tie = tie
+        }
+        
+        if let close = group.close {
+            storedGroup.close = close
+        }
+            
+        if let end = group.end {
+            storedGroup.end = end
+        }
+        try await storedGroup.update(on: req.db)
+        return .noContent
+    }
     
     
 }
 
 
-//struct createGroupData: Content {
-//    var join_id: Int
-//    var tie: Bool
-//    var close: Bool
-//    var end: Bool
-//    var name: merchantData
-//}
+struct updateGroupData: Content {
+    var groupID: UUID
+    var tie: Bool?
+    var close: Bool?
+    var end: Bool?
+
+}
 //
 //struct merchantData: Content {
 //    var name: String
