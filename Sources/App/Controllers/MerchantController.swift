@@ -28,7 +28,6 @@ struct MerchantController: RouteCollection {
     func createGroupMerchant(_ req: Request) async throws -> HTTPStatus {
         let user = try req.auth.require(User.self)
         let userId = try user.requireID()
-//        print("user id", userId)
         // create group + join
         // get group
         // create merchant
@@ -38,8 +37,6 @@ struct MerchantController: RouteCollection {
         print("data", data.name)
         let merchant = Merchant(userID: userId.self, name: data.name, votes: 0)
         try await merchant.save(on: req.db)
-//        print("data", data.name)
-//        let groupID = try req.parameters.require("groupID", as: UUID.self)
         let newGroupID = createGroup.id
         guard let group = try await Group.find(newGroupID, on: req.db) else {
             throw Abort(.notFound, reason: "Gtoup not found")
@@ -74,17 +71,13 @@ struct MerchantController: RouteCollection {
     func getAllMerchant(_ req: Request) async throws -> [Merchant] {
         try req.auth.require(User.self)
         
-//        let groupJoinId = req.query[Int.self, at: "join_id"]
         let groupID = try req.parameters.require("groupID", as: UUID.self)
-//        let merIDs = try await Merchant_Group.query(on: req.db)
-//            .join(Group.self, on: \Group.$id == \Merchant_Group.$group.$id)
-//            .filter(Group.self, \.$id == groupID)
-//            .all()
+
         return try await Merchant.query(on: req.db)
             .join(Merchant_Group.self, on: \Merchant_Group.$merchant.$id == \Merchant.$id)
             .join(Group.self, on: \Group.$id == \Merchant_Group.$group.$id)
             .filter(Group.self, \.$id == groupID)
-//            .filter(Merchant.self, \.$id == merIDs)
+
             .all()
     }
     
@@ -104,11 +97,8 @@ struct MerchantController: RouteCollection {
     }
     
     // update votes
-    
     func updateVotes(_ req: Request) async throws -> HTTPStatus {
-//        guard let merchant = try await Merchant.find(req.parameters.get("merchantID"), on: req.db) else {
-//            throw Abort(.notFound, reason: "merchant not found")
-//        }
+
         
         let newVote = try req.content.decode(updateVotesData.self)
         
@@ -123,9 +113,6 @@ struct MerchantController: RouteCollection {
     
 }
 
-//struct User: Content {
-//
-//}
 
 struct CreateMerchantEData: Content {
     var name: String

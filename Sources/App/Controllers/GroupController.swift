@@ -27,15 +27,10 @@ struct GroupController: RouteCollection {
     func createGroup(_ req: Request) async throws -> Group {
         let user = try req.auth.require(User.self)
         let userID = try user.requireID()
-        // i don't want it to have a body!
-//        let data = try req.content.decode(Group.self)
-        // remove
-        // all these data shall come from me -- join id should be generated
         // first generate second check db third either store or regenerate :)
-//        let storedJoin_id = try await getGroupByJoinID(req)
         var join_id = random(digits: 8)
         guard let IntJoin = Int(join_id) else { throw Abort(.notFound, reason: "group not found")  }
-//        print("int join", IntJoin)
+
         if try await getGroupByJoinIDIN(req, join_id: IntJoin) == true {
             join_id = random(digits: 8)
         }
@@ -49,7 +44,6 @@ struct GroupController: RouteCollection {
             let user_group = try User_Group(userID: userID.self, groupID: group.requireID())
             try await user_group.save(on: req.db)
             
-            //        print(random(digits: 8))
             return group
         
     }
@@ -77,18 +71,15 @@ struct GroupController: RouteCollection {
         return group
     }
     
-    // query to get the group - internaly
+    // query to get the group
     func getGroupByJoinIDIN(_ req: Request, join_id: Int) async throws -> Bool {
         
         
         guard let group = try await Group.query(on: req.db)
             .filter(\.$join_id == join_id)
             .all().last else {
-//            print("here false")
             return false
-           
         }
-//        print("here true")
         return true
     }
     
@@ -136,7 +127,3 @@ struct updateGroupData: Content {
     var end: Bool?
 
 }
-//
-//struct merchantData: Content {
-//    var name: String
-//}
