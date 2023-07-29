@@ -41,6 +41,7 @@ extension Token {
 }
 
 extension Token: ModelTokenAuthenticatable {
+    
     typealias User = App.User
 
     static let valueKey = \Token.$value
