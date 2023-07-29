@@ -72,8 +72,8 @@ struct MerchantController: RouteCollection {
     
     // get all merchants in a group - merchant, merchant_group, group -- it works!
     func getAllMerchant(_ req: Request) async throws -> [Merchant] {
-        let user = try req.auth.require(User.self)
-        let userId = try user.requireID()
+        try req.auth.require(User.self)
+        
 //        let groupJoinId = req.query[Int.self, at: "join_id"]
         let groupID = try req.parameters.require("groupID", as: UUID.self)
 //        let merIDs = try await Merchant_Group.query(on: req.db)
