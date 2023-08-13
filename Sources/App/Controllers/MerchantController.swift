@@ -25,7 +25,7 @@ struct MerchantController: RouteCollection {
     }
     
     // post merchant -- i want to create group first then merchant?
-    func createGroupMerchant(_ req: Request) async throws -> HTTPStatus {
+    func createGroupMerchant(_ req: Request) async throws -> Merchant_Group {
         let user = try req.auth.require(User.self)
         let userId = try user.requireID()
         // create group + join
@@ -34,7 +34,7 @@ struct MerchantController: RouteCollection {
         let createGroup = try await GroupController().createGroup(req)
         let data = try req.content.decode(CreateMerchantEData.self)
 
-        print("data", data.name)
+//        print("data", data.name)
         let merchant = Merchant(userID: userId.self, name: data.name, votes: 0)
         try await merchant.save(on: req.db)
         let newGroupID = createGroup.id
@@ -43,7 +43,7 @@ struct MerchantController: RouteCollection {
         }
         let merchant_group = try Merchant_Group(merchanID: merchant.requireID(), groupID: group.requireID())
         try await merchant_group.save(on: req.db)
-        return .noContent
+        return merchant_group
     }
     // create merchant only .. should i let user join group here?
     func createMerchant(_ req: Request) async throws -> HTTPStatus {

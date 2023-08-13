@@ -8,7 +8,7 @@
 import Fluent
 import Vapor
 
-final class Token: Model, Content {
+final class Token: Model, Content, Decodable {
     static let schema = "tokens"
 
     @ID(key: .id)

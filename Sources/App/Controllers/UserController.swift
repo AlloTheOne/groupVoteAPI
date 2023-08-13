@@ -57,3 +57,4 @@ struct UserController: RouteCollection {
 struct updateNameData: Content {
     var name: String
 }
+

@@ -21,8 +21,13 @@ struct GroupController: RouteCollection {
         tokenAuthGroup.post("create", use: createGroup)
         tokenAuthGroup.post(":join_id", use: joinGroup)
         tokenAuthGroup.patch(use: updateGroup)
+        tokenAuthGroup.get(":groupID", use: getGroubByID)
+        tokenAuthGroup.get("all", ":groupID", use: getAllGroupStuff)
+//        tokenAuthGroup.get("alle", ":groupID", use: getAllGroupStuffe)
     }
     
+    // MARK: - CREATE GROUP
+    // CALLED IN MERCHANT CONTROLLER
     // post group + post user_group + post merchant
     func createGroup(_ req: Request) async throws -> Group {
         let user = try req.auth.require(User.self)
@@ -47,7 +52,7 @@ struct GroupController: RouteCollection {
             return group
         
     }
-    // get group by join id
+    // MARK: - join group using returned groupID value from join id
     func joinGroup(_ req: Request) async throws -> HTTPStatus {
         let user = try req.auth.require(User.self)
         let userID = try user.requireID()
@@ -58,7 +63,7 @@ struct GroupController: RouteCollection {
         return .noContent
     }
     
-    // query to get the group
+    // MARK: - query to get the group
     func getGroupByJoinID(_ req: Request) async throws -> Group {
         
         let joinID = try req.parameters.require("join_id", as: Int.self)
@@ -71,9 +76,8 @@ struct GroupController: RouteCollection {
         return group
     }
     
-    // query to get the group
+    // MARK: - query to check if join id already exist
     func getGroupByJoinIDIN(_ req: Request, join_id: Int) async throws -> Bool {
-        
         
         guard let group = try await Group.query(on: req.db)
             .filter(\.$join_id == join_id)
@@ -82,7 +86,7 @@ struct GroupController: RouteCollection {
         }
         return true
     }
-    
+    // MARK: - generate random numbers
     func random(digits:Int) -> String {
         var number = String()
         for _ in 1...digits {
@@ -91,8 +95,8 @@ struct GroupController: RouteCollection {
         return number
     }
     
-    // join group using returned groupID value from join id
-    // update tie - close - end
+    
+    // MARK: - update tie - close - end
     func updateGroup(_ req: Request) async throws -> HTTPStatus {
         try req.auth.require(User.self)
         let group = try req.content.decode(updateGroupData.self)
@@ -115,8 +119,52 @@ struct GroupController: RouteCollection {
         try await storedGroup.update(on: req.db)
         return .noContent
     }
+    // MARK: - get group by group id
+    func getGroubByID(_ req: Request) async throws -> Group {
+        try req.auth.require(User.self)
+//        let groupID = try req.parameters.require("groupID", as: UUID.self)
+        guard let group = try await Group.find(req.parameters.get("groupID"), on: req.db) else {
+            throw Abort(.notFound, reason: "group not found")
+        }
+        return group
+    }
     
-    
+    // MARK: - get group, user group, merchant, group merchant
+//    func getAllGroupStuff(_ req: Request) async throws -> Merchant_Group {
+//        try req.auth.require(User.self)
+////        guard let groupID = try await Group.find(req.parameters.get("id"), on: req.db) else {
+////            throw Abort(.notFound, reason: "group not found")
+////        }
+//        let groupID = try req.parameters.require("groupID", as: UUID.self)
+////        guard let group = try await Group.query(on: req.db)
+//////            .with(\.)
+////            .first()
+////        else {
+////            throw Abort(.notFound, reason: "group not found")
+////        }
+//        guard let merchant_group = try await Merchant_Group.query(on: req.db)
+//            .with(\.$group)
+//            .with(\.$merchant)
+//            .join(Group.self, on: \Group.$id == \Merchant_Group.$group.$id)
+//            .filter(Group.self, \.$id == groupID)
+//            .first()
+//        else {
+//            throw Abort(.notFound, reason: "group not found")
+//        }
+//
+//        return merchant_group
+//    }
+    func getAllGroupStuff(_ req: Request) async throws -> [Merchant_Group] {
+        try req.auth.require(User.self)
+        
+        let groupID = try req.parameters.require("groupID", as: UUID.self)
+        
+        return try await Merchant_Group.query(on: req.db)
+            .with(\.$merchant)
+            .join(Group.self, on: \Group.$id == \Merchant_Group.$group.$id)
+            .filter(Group.self, \.$id == groupID)
+            .all()
+    }
 }
 
 
