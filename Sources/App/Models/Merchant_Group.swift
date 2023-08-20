@@ -8,7 +8,7 @@
 import Fluent
 import Vapor
 
-final class Merchant_Group: Model, Content {
+final class Merchant_Group: Model, Content, Decodable {
     static let schema = "merchants_groups"
     
     @ID(key: .id)

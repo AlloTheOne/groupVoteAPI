@@ -34,7 +34,6 @@ struct MerchantController: RouteCollection {
         let createGroup = try await GroupController().createGroup(req)
         let data = try req.content.decode(CreateMerchantEData.self)
 
-//        print("data", data.name)
         let merchant = Merchant(userID: userId.self, name: data.name, votes: 0)
         try await merchant.save(on: req.db)
         let newGroupID = createGroup.id
@@ -45,6 +44,7 @@ struct MerchantController: RouteCollection {
         try await merchant_group.save(on: req.db)
         return merchant_group
     }
+    
     // create merchant only .. should i let user join group here?
     func createMerchant(_ req: Request) async throws -> HTTPStatus {
         let user = try req.auth.require(User.self)

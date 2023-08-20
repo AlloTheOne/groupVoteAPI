@@ -23,6 +23,7 @@ struct GroupController: RouteCollection {
         tokenAuthGroup.patch(use: updateGroup)
         tokenAuthGroup.get(":groupID", use: getGroubByID)
         tokenAuthGroup.get("all", ":groupID", use: getAllGroupStuff)
+        tokenAuthGroup.get("users", ":groupID", use: getJoinedUsers)
 //        tokenAuthGroup.get("alle", ":groupID", use: getAllGroupStuffe)
     }
     
@@ -164,6 +165,20 @@ struct GroupController: RouteCollection {
             .join(Group.self, on: \Group.$id == \Merchant_Group.$group.$id)
             .filter(Group.self, \.$id == groupID)
             .all()
+    }
+    
+    func getJoinedUsers(_ req: Request) async throws -> [User] {
+        let user = try req.auth.require(User.self)
+        let userID = try user.requireID()
+        let groupID = try req.parameters.require("groupID", as: UUID.self)
+        
+        let joinedUsers = try await User.query(on: req.db)
+            .join(User_Group.self, on: \User.$id == \User_Group.$user.$id, method: .inner)
+            .filter(User_Group.self, \.$group.$id == groupID)
+            .filter(\.$id != userID)
+            .all()
+        
+        return joinedUsers
     }
 }
 
