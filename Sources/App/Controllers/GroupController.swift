@@ -54,14 +54,14 @@ struct GroupController: RouteCollection {
         
     }
     // MARK: - join group using returned groupID value from join id
-    func joinGroup(_ req: Request) async throws -> HTTPStatus {
+    func joinGroup(_ req: Request) async throws -> Group {
         let user = try req.auth.require(User.self)
         let userID = try user.requireID()
         let group = try await getGroupByJoinID(req)
         
         let user_group = try User_Group(userID: userID.self, groupID: group.requireID())
         try await user_group.save(on: req.db)
-        return .noContent
+        return group
     }
     
     // MARK: - query to get the group
@@ -143,7 +143,7 @@ struct GroupController: RouteCollection {
             .filter(Group.self, \.$id == groupID)
             .all()
     }
-    
+    // MARK: - get joined users
     func getJoinedUsers(_ req: Request) async throws -> [User] {
         let user = try req.auth.require(User.self)
         let userID = try user.requireID()
