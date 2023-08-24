@@ -98,7 +98,7 @@ struct GroupController: RouteCollection {
     
     
     // MARK: - update tie - close - end
-    func updateGroup(_ req: Request) async throws -> HTTPStatus {
+    func updateGroup(_ req: Request) async throws -> Group {
         try req.auth.require(User.self)
         let group = try req.content.decode(updateGroupData.self)
         
@@ -118,7 +118,7 @@ struct GroupController: RouteCollection {
             storedGroup.end = end
         }
         try await storedGroup.update(on: req.db)
-        return .noContent
+        return storedGroup
     }
     // MARK: - get group by group id
     func getGroubByID(_ req: Request) async throws -> Group {
@@ -131,30 +131,7 @@ struct GroupController: RouteCollection {
     }
     
     // MARK: - get group, user group, merchant, group merchant
-//    func getAllGroupStuff(_ req: Request) async throws -> Merchant_Group {
-//        try req.auth.require(User.self)
-////        guard let groupID = try await Group.find(req.parameters.get("id"), on: req.db) else {
-////            throw Abort(.notFound, reason: "group not found")
-////        }
-//        let groupID = try req.parameters.require("groupID", as: UUID.self)
-////        guard let group = try await Group.query(on: req.db)
-//////            .with(\.)
-////            .first()
-////        else {
-////            throw Abort(.notFound, reason: "group not found")
-////        }
-//        guard let merchant_group = try await Merchant_Group.query(on: req.db)
-//            .with(\.$group)
-//            .with(\.$merchant)
-//            .join(Group.self, on: \Group.$id == \Merchant_Group.$group.$id)
-//            .filter(Group.self, \.$id == groupID)
-//            .first()
-//        else {
-//            throw Abort(.notFound, reason: "group not found")
-//        }
-//
-//        return merchant_group
-//    }
+
     func getAllGroupStuff(_ req: Request) async throws -> [Merchant_Group] {
         try req.auth.require(User.self)
         

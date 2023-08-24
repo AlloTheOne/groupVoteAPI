@@ -20,8 +20,10 @@ struct MerchantController: RouteCollection {
         tokenAuthGroup.post(use: createGroupMerchant)
         tokenAuthGroup.post(":groupID", use: createMerchant)
         tokenAuthGroup.get(":groupID",use: getAllMerchant)
+        tokenAuthGroup.get("merchant",":merchantID",use: getMerchantByID)
         tokenAuthGroup.get("winner",":groupID", use: getHighestScore)
         tokenAuthGroup.patch(use: updateVotes)
+        tokenAuthGroup.patch("add", ":merchantID", use: addVote)
     }
     
     // post merchant -- i want to create group first then merchant?
@@ -96,6 +98,16 @@ struct MerchantController: RouteCollection {
             .all().last!
     }
     
+    // get merchant by id
+    func getMerchantByID(_ req: Request) async throws -> Merchant {
+        try req.auth.require(User.self)
+        let merchantID = try req.parameters.require("merchantID", as: UUID.self)
+        
+        return try await Merchant.query(on: req.db)
+            .filter(\.$id == merchantID)
+            .first()!
+    }
+    
     // update votes
     func updateVotes(_ req: Request) async throws -> HTTPStatus {
 
@@ -109,6 +121,18 @@ struct MerchantController: RouteCollection {
         try await storedMerchant.update(on: req.db)
         
         return .noContent
+    }
+    func addVote(_ req: Request) async throws -> Merchant {
+        try req.auth.require(User.self)
+        let merchantID = try req.parameters.require("merchantID", as: UUID.self)
+        
+        guard let storedMerchant = try await Merchant.find(merchantID, on: req.db) else {
+            throw Abort(.notFound, reason: "merchant not found")
+        }
+        storedMerchant.votes += 1
+        try await storedMerchant.update(on: req.db)
+        
+        return storedMerchant
     }
     
 }
